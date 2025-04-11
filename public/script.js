@@ -4,17 +4,22 @@ const ctx = canvas.getContext("2d");
 
 let roomId = null;
 let myId = null;
+let players = []; // Store player data with positions
 
-// Show home screen initially
 document.getElementById("homeScreen").style.display = "block";
 document.getElementById("gameScreen").style.display = "none";
 
-// Draw a simple Ludo board
+const playerColors = ["red", "green", "yellow", "blue"];
+const startingPositions = [
+  { x: 50, y: 50 },  // Red home
+  { x: 350, y: 50 }, // Green home
+  { x: 350, y: 350 }, // Yellow home
+  { x: 50, y: 350 }  // Blue home
+];
+
 function drawBoard() {
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, 400, 400);
-
-  // Draw colored home squares
   ctx.fillStyle = "red";
   ctx.fillRect(0, 0, 120, 120);
   ctx.fillStyle = "green";
@@ -23,8 +28,6 @@ function drawBoard() {
   ctx.fillRect(280, 280, 120, 120);
   ctx.fillStyle = "blue";
   ctx.fillRect(0, 280, 120, 120);
-
-  // Draw center triangle
   ctx.fillStyle = "#ddd";
   ctx.beginPath();
   ctx.moveTo(200, 120);
@@ -33,15 +36,24 @@ function drawBoard() {
   ctx.lineTo(120, 200);
   ctx.closePath();
   ctx.fill();
+  // Redraw pieces after board
+  players.forEach((player, index) => {
+    drawPiece(player.position.x, player.position.y, player.color);
+  });
 }
 
-// Create a new room
+function drawPiece(x, y, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
 function createRoom() {
   const playerName = document.getElementById("playerName").value || "Player 1";
   socket.emit("createRoom");
 }
 
-// Join an existing room
 function joinRoom() {
   const roomCode = document.getElementById("roomCode").value.trim();
   const playerName = document.getElementById("playerName").value || "Guest";
@@ -52,13 +64,11 @@ function joinRoom() {
   }
 }
 
-// Roll the dice
 function rollDice() {
   const result = Math.floor(Math.random() * 6) + 1;
   socket.emit("rollDice", { roomId, result });
 }
 
-// Socket.IO event listeners
 socket.on("connect", () => {
   myId = socket.id;
 });
@@ -83,9 +93,16 @@ socket.on("error", (msg) => {
   document.getElementById("errorMsg").textContent = msg;
 });
 
-socket.on("updatePlayers", (players) => {
+socket.on("updatePlayers", (serverPlayers) => {
   const playersDiv = document.getElementById("players");
-  playersDiv.innerHTML = "<h3>Players:</h3>" + players.map((p) => `<p>${p.name}</p>`).join("");
+  players = serverPlayers.map((p, index) => ({
+    id: p.id,
+    name: p.name,
+    color: playerColors[index % 4],
+    position: startingPositions[index % 4]
+  }));
+  playersDiv.innerHTML = "<h3>Players:</h3>" + players.map((p) => `<p>${p.name} (${p.color})</p>`).join("");
+  drawBoard();
 });
 
 socket.on("gameState", ({ turn }) => {
@@ -95,4 +112,9 @@ socket.on("gameState", ({ turn }) => {
 
 socket.on("diceResult", ({ playerId, result }) => {
   document.getElementById("diceResult").textContent = result;
+  const player = players.find((p) => p.id === playerId);
+  if (player) {
+    player.position.x += result * 10; // Simple movement (update as needed)
+    drawBoard();
+  }
 });
