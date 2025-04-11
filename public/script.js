@@ -117,4 +117,19 @@ socket.on("diceResult", ({ playerId, result }) => {
     player.position.x += result * 10; // Simple movement (update as needed)
     drawBoard();
   }
+});const path = [
+  { x: 50, y: 50 }, { x: 60, y: 50 }, { x: 70, y: 50 }, // Simplified path
+  // Add full Ludo path coordinates
+];
+
+socket.on("diceResult", ({ playerId, result }) => {
+  document.getElementById("diceResult").textContent = result;
+  const player = players.find((p) => p.id === playerId);
+  if (player) {
+    player.pathIndex = (player.pathIndex || 0) + result;
+    if (player.pathIndex < path.length) {
+      player.position = path[player.pathIndex];
+    }
+    drawBoard();
+  }
 });
