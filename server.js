@@ -63,7 +63,19 @@ io.on("connection", (socket) => {
     }
   });
 });
-
+socket.on("joinRoom", ({ roomId, playerName }) => {
+  console.log(`Attempting to join room: ${roomId}, Current rooms: ${JSON.stringify(rooms)}`);
+  if (rooms[roomId] && rooms[roomId].players.length < 4) {
+    socket.join(roomId);
+    rooms[roomId].players.push({ id: socket.id, name: playerName || `Player ${rooms[roomId].players.length + 1}` });
+    socket.emit("joinedRoom", roomId);
+    io.to(roomId).emit("updatePlayers", rooms[roomId].players);
+    io.to(roomId).emit("gameState", { turn: rooms[roomId].players[rooms[roomId].turn].id });
+  } else {
+    console.log(`Failed: Room ${roomId} full or does not exist`);
+    socket.emit("error", "Room full or does not exist");
+  }
+});
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
