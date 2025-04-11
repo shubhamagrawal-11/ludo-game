@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ludo Online</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="homeScreen">
+    <h1>Ludo Online</h1>
+    <div>
+      <input type="text" id="playerName" placeholder="Enter your name">
+      <button onclick="createRoom()">Create Game</button>
+    </div>
+    <div>
+      <input type="text" id="roomCode" placeholder="Enter room code">
+      <button onclick="joinRoom()">Join Game</button>
+    </div>
+    <p id="errorMsg"></p>
+  </div>
+
+  <div id="gameScreen" style="display: none;">
+    <h2>Room: <span id="roomId"></span></h2>
+    <canvas id="ludoBoard" width="400" height="400"></canvas>
+    <div id="players"></div>
+    <div id="turnInfo"></div>
+    <button id="rollDiceBtn" style="display: none;" onclick="rollDice()">Roll Dice</button>
+    <p>Dice: <span id="diceResult"></span></p>
+  </div>
+
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
